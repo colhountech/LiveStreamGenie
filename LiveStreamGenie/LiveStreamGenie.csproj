@@ -9,6 +9,7 @@
     <Title>Live Stream Genie</Title>
     <Copyright>Copyright (c) ColhounTech Limited. All Rights Reserved</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <AssemblyName>Live Stream Genie</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
