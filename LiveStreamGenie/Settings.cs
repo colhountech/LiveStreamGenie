@@ -9,6 +9,6 @@ namespace LiveStreamGenie
     public class Settings
     {
         public bool QuitOnAllFormsClosed { get; set; }  = false;
-        public bool StartMinimized { get; set;  } = false;
+        public bool StartMinimized { get; set;  } = true;
     }
 }

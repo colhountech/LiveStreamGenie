@@ -1,10 +1,20 @@
-﻿using System.Text;
+﻿using System.Drawing;
+using System.Text;
+using OBSWebsocketDotNet;
+using OBSWebsocketDotNet.Communication;
 
 namespace LiveStreamGenie
 {
     public class MyApplicationContext : ApplicationContext
     {
-        
+        // Inverted Dependencies
+        private readonly NotifyIcon notifyIcon;
+
+        // OBS Settings
+        protected static OBSWebsocket obs = new OBSWebsocket();
+
+        #region Forms Settings
+
         private readonly SettingsForm _form1;
         private readonly AboutForm _form2;
 
@@ -14,9 +24,15 @@ namespace LiveStreamGenie
 
         private readonly Settings settings = new();
 
-        public MyApplicationContext()
+        #endregion
+
+        public MyApplicationContext(NotifyIcon notifyIcon)
         {
-            
+            this.notifyIcon = notifyIcon;
+
+
+            #region Initialise Forms
+
             _formCount = 0;
 
             // Handle the ApplicationExit event to know when the application is exiting.
@@ -71,17 +87,87 @@ namespace LiveStreamGenie
                 _form1.Show();
                 _form2.Show();
             }
+            #endregion
+
+            InitObs();
         }
 
+
+        public void Reconnect()
+        {
+            InitObs();
+        }
+
+        private void InitObs()
+        {
+            /// setup obs
+            obs.Connected += onConnect;
+            obs.Disconnected += onDisconnect;
+            obs.CurrentProgramSceneChanged += onSceneChanged;
+
+            var url = "ws://raptor:4455";
+            var password = "";
+
+            obs.ConnectAsync(url, password);
+
+        }
+
+        internal void Scene(string scene)
+        {
+            try
+            {
+                obs.SetCurrentProgramScene(scene);
+            }
+            catch (Exception ex)
+            {
+                notifyIcon.ShowBalloonTip(3000, "OBS Disconnect", ex.Message, ToolTipIcon.Error);
+
+            }
+        }
+
+        private void onSceneChanged(object? sender, OBSWebsocketDotNet.Types.Events.ProgramSceneChangedEventArgs e)
+        {
+            var scene = e.SceneName;
+            notifyIcon.ShowBalloonTip(30, "OBS Scene", $"{scene}", ToolTipIcon.Info);
+
+        }
+
+        private void onDisconnect(object? sender, ObsDisconnectionInfo e)
+        {
+
+            string reason =   e.DisconnectReason ?? e.ObsCloseCode.ToString();
+
+            if (e?.WebsocketDisconnectionInfo?.Exception?.InnerException?.Message is string message)
+            {
+                reason += message;
+            }
+
+
+            notifyIcon.ShowBalloonTip(3000, "OBS Disconnect", reason, ToolTipIcon.Error);
+
+
+        }
+
+        private void onConnect(object? sender, EventArgs e)
+        {
+            if (sender is OBSWebsocket ws && ws.IsConnected)
+            {
+                notifyIcon.ShowBalloonTip(3000, "OBS Connected", "👍", ToolTipIcon.Info);
+            }
+        }
+
+        
         #region Private Methods FormData Read/Write Methods
 
         private readonly FileStream? _userData;
+
         private bool WriteFormDataToFile()
         {
             // Write the form positions to the file.
             UTF8Encoding encoding = new();
 
             RectangleConverter rectConv = new();
+
             if (rectConv.ConvertToString(_form1Position) is string form1pos &&
                 rectConv.ConvertToString(_form2Position) is string form2pos
                 )
@@ -214,6 +300,8 @@ namespace LiveStreamGenie
             }
             catch { }
         }
+
+      
 
         #endregion
     }
