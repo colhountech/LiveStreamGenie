@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LiveStreamGenie
 {
-    internal class Settings
+    public class Settings
     {
         public bool QuitOnAllFormsClosed { get; set; }  = false;
         public bool StartMinimized { get; set;  } = false;
