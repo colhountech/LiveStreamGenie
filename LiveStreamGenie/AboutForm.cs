@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LiveStreamGenie.Properties;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -15,6 +16,7 @@ namespace LiveStreamGenie
         public AboutForm()
         {
             InitializeComponent();
+            Icon = Resources.favicon;
         }
     }
 }
