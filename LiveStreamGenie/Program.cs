@@ -14,9 +14,12 @@ namespace LiveStreamGenie
             Visible = true,
         };
 
-        private static readonly ApplicationContext context = new MyApplicationContext();
-        private static readonly System.Timers.Timer timer = new(15 * 1000); // 60 seconds
         private static readonly Settings settings = new();
+        private static readonly System.Timers.Timer timer = new(15 * 1000); // 60 seconds
+
+        private static readonly ApplicationContext context = new MyApplicationContext();
+        
+        
 
 
         class MyApplicationContext : ApplicationContext
