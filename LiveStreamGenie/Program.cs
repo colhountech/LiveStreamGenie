@@ -10,20 +10,19 @@ namespace LiveStreamGenie
         private static ContextMenuStrip cms;
         private static ApplicationContext context;
         private static System.Timers.Timer timer;
-        private static bool quitOnAllFormsClosed = false;
-        private static bool startMinimized = false;
+        private static readonly Settings settings = new();
 
 
         class MyApplicationContext : ApplicationContext
         {
             private int _formCount;
-            private SettingsForm _form1;
-            private AboutForm _form2;
+            private readonly SettingsForm _form1;
+            private readonly AboutForm _form2;
 
             private Rectangle _form1Position;
             private Rectangle _form2Position;
 
-            private FileStream _userData;
+            private readonly FileStream _userData;
 
 
             private MyApplicationContext()
@@ -31,7 +30,7 @@ namespace LiveStreamGenie
                 _formCount = 0;
 
                 // Handle the ApplicationExit event to know when the application is exiting.
-                Application.ApplicationExit += new EventHandler(this.OnApplicationExit);
+                Application.ApplicationExit += OnApplicationExit;
 
                 try
                 {
@@ -51,14 +50,15 @@ namespace LiveStreamGenie
                 // Create both application forms and handle the Closed event
                 // to know when both forms are closed.
                 _form1 = new SettingsForm();
-                _form1.Closed += new EventHandler(OnFormClosed);
-                _form1.Closing += new CancelEventHandler(OnFormClosing);
-                _form1.Disposed += _form1_Disposed;
+                _form1.Closed += OnFormClosed;
+                _form1.Closing += OnFormClosing;
+                _form1.Disposed += Form_Disposed;
                 _formCount++;
 
                 _form2 = new AboutForm();
-                _form2.Closed += new EventHandler(OnFormClosed);
-                _form2.Closing += new CancelEventHandler(OnFormClosing);
+                _form2.Closed += OnFormClosed;
+                _form2.Closing += OnFormClosing;
+                _form2.Disposed += Form_Disposed;
                 _formCount++;
 
                 // Get the form positions based upon the user specific data.
@@ -74,14 +74,14 @@ namespace LiveStreamGenie
                 }
 
                 // Show both forms.
-                if (!startMinimized)
+                if (!settings.StartMinimized)
                 {
                     _form1.Show();
                     _form2.Show();
                 }
             }
 
-            private void _form1_Disposed(object? sender, EventArgs e)
+            private void Form_Disposed(object? sender, EventArgs e)
             {
                 if (
                     _form1.Bounds != _form1Position)
@@ -96,7 +96,7 @@ namespace LiveStreamGenie
                
             }
 
-            private void OnApplicationExit(object sender, EventArgs e)
+            private void OnApplicationExit(object? sender, EventArgs e)
             {
                
 
@@ -112,7 +112,7 @@ namespace LiveStreamGenie
                 catch { }
             }
 
-            private void OnFormClosing(object sender, CancelEventArgs e)
+            private void OnFormClosing(object? sender, CancelEventArgs e)
             {
                 // When a form is closing, remember the form position so it
                 // can be saved in the user data file.
@@ -121,14 +121,14 @@ namespace LiveStreamGenie
                 // Moved logic to FormDisposed because system tray exit doesn't catch Form Closing
             }
 
-            private void OnFormClosed(object sender, EventArgs e)
+            private void OnFormClosed(object? sender, EventArgs e)
             {
                 // When a form is closed, decrement the count of open forms.
 
                 // When the count gets to 0, exit the app by calling
                 // ExitThread().
                 _formCount--;
-                if (_formCount == 0 && quitOnAllFormsClosed)
+                if (_formCount == 0 && settings.QuitOnAllFormsClosed)
                 {
                     ExitThread();
                 }
@@ -137,35 +137,35 @@ namespace LiveStreamGenie
             private bool WriteFormDataToFile()
             {
                 // Write the form positions to the file.
-                UTF8Encoding encoding = new UTF8Encoding();
+                UTF8Encoding encoding = new();
 
-                RectangleConverter rectConv = new RectangleConverter();
-                string form1pos = rectConv.ConvertToString(_form1Position);
-                string form2pos = rectConv.ConvertToString(_form2Position);
-
-                byte[] dataToWrite = encoding.GetBytes("~" + form1pos + "~" + form2pos);
-
-                try
+                RectangleConverter rectConv = new();
+                if (rectConv.ConvertToString(_form1Position) is string form1pos &&
+                    rectConv.ConvertToString(_form2Position) is string form2pos
+                    )
                 {
-                    // Set the write position to the start of the file and write
-                    _userData.Seek(0, SeekOrigin.Begin);
-                    _userData.Write(dataToWrite, 0, dataToWrite.Length);
-                    _userData.Flush();
+                    byte[] dataToWrite = encoding.GetBytes("~" + form1pos + "~" + form2pos);
 
-                    _userData.SetLength(dataToWrite.Length);
-                    return true;
+                    try
+                    {
+                        // Set the write position to the start of the file and write
+                        _userData.Seek(0, SeekOrigin.Begin);
+                        _userData.Write(dataToWrite, 0, dataToWrite.Length);
+                        _userData.Flush();
+
+                        _userData.SetLength(dataToWrite.Length);
+                        return true;
+                    }
+                    catch { }
                 }
-                catch
-                {
-                    // An error occurred while attempting to write, return false.
-                    return false;
-                }
+                // An error occurred while attempting to write, return false.
+                return false;
             }
 
             private bool ReadFormDataFromFile()
             {
                 // Read the form positions from the file.
-                UTF8Encoding encoding = new UTF8Encoding();
+                UTF8Encoding encoding = new();
                 string data;
 
                 if (_userData.Length != 0)
@@ -180,6 +180,7 @@ namespace LiveStreamGenie
                     }
                     catch (IOException e)
                     {
+                        // TODO: Log this error
                         string errorInfo = e.ToString();
                         // An error occurred while attempt to read, return false.
                         return false;
@@ -191,13 +192,21 @@ namespace LiveStreamGenie
                     try
                     {
                         // Convert the string data to rectangles
-                        RectangleConverter rectConv = new RectangleConverter();
-                        string form1pos = data.Substring(1, data.IndexOf("~", 1) - 1);
+                        RectangleConverter rectConv = new();
 
-                        _form1Position = (Rectangle)rectConv.ConvertFromString(form1pos);
+                        string form1pos = data[1..data.IndexOf("~", 1)];
 
-                        string form2pos = data.Substring(data.IndexOf("~", 1) + 1);
-                        _form2Position = (Rectangle)rectConv.ConvertFromString(form2pos);
+                        if (rectConv.ConvertFromString(form1pos) is Rectangle position1)
+                        {
+                            _form1Position = position1;
+                        }
+                        
+                        string form2pos = data[(data.IndexOf("~", 1) + 1)..];
+
+                        if (rectConv.ConvertFromString(form2pos) is Rectangle position2)
+                        {
+                            _form2Position = position2;
+                        }                      
 
                         return true;
                     }
@@ -220,10 +229,12 @@ namespace LiveStreamGenie
 
                 ApplicationConfiguration.Initialize();
 
-                notifyIcon = new NotifyIcon();
-                notifyIcon.Icon = new Icon("favicon.ico");
-                notifyIcon.Text = "Genie";
-                
+                notifyIcon = new NotifyIcon
+                {
+                    Icon = new Icon("favicon.ico"),
+                    Text = "Genie"
+                };
+
 
                 cms = new ContextMenuStrip();
 
@@ -251,7 +262,7 @@ namespace LiveStreamGenie
                 // Hide notify icon on quit
                 notifyIcon.Visible = false;
             }
-            private static void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+            private static void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
             {
 
 
