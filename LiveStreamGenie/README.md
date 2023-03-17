@@ -6,6 +6,20 @@ Make sure you turn off nofication sounds or it will beep every time you get a no
 ![](./turn-off-sounds.png)
 
 
+To see the notifications when running Powerpoint in presentation mode, you must also allow notifications in full screen node. To do this go to:
+
+Windows + I  (Settings)
+
+System
+
+Focus Assist
+
+"When I'm using an App in Full Screen Mode"
+
+Turn Off
+
+![](./focus-assist.png)
+
 
 # Technical Design
 
@@ -17,8 +31,3 @@ The Application.Run method starts a message loop that processes messages from th
 
 Overall, this code is a standard way to start a Windows Forms application and run its message loop, which enables the application to handle user input and interact with the operating system.
 
-
-
-
-
-Regenerate response
