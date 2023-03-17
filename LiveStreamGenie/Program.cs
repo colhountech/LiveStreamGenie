@@ -13,7 +13,9 @@ namespace LiveStreamGenie
                 Items =
                 {
                     new ToolStripMenuItem("Reconnect", null, new EventHandler(Reconnect_Click)),
+                    new ToolStripMenuItem("Settings", null, new EventHandler(Settings_Click),"Setting"),
                     new ToolStripSeparator(),
+                    new ToolStripMenuItem("About", null, new EventHandler(About_Click),"About"),
                     new ToolStripMenuItem("Quit", null, new EventHandler(Quit_Click), "Quit")
                 }
             },
@@ -67,7 +69,7 @@ namespace LiveStreamGenie
         {
             if (context is MyApplicationContext myApplication)
             {
-                myApplication.Scene(sceneName);
+                myApplication.ChangeScene(sceneName);
             }
         }
 
@@ -76,5 +78,20 @@ namespace LiveStreamGenie
             // End application though ApplicationContext
             context.ExitThread();
         }
+        static void Settings_Click(object? sender, EventArgs e)
+        {
+            if (context is MyApplicationContext myApplication)
+            {
+                myApplication.Settings_Click();
+            }
+        }
+        static void About_Click(object? sender, EventArgs e)
+        {
+            if (context is MyApplicationContext myApplication)
+            {
+                myApplication.About_CLick();
+            }
+        }
+
     }
 }
