@@ -8,3 +8,4 @@ The background of the icon could be a light blue or white to create a sense of a
 
 Overall, the Live Stream Genie icon with a purple genie lamp and wifi signal could convey a sense of fun, magic, and connectivity. The icon could grab the user's attention, convey the app's core features and values, and be easily recognizable on a user's device.
 
+![Live Streaming Genie Logo](./LiveStreamGenie/Media/Live%20Stream%20Genie.png)
