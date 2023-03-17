@@ -50,6 +50,7 @@ namespace LiveStreamGenie
                 _form1 = new SettingsForm();
                 _form1.Closed += new EventHandler(OnFormClosed);
                 _form1.Closing += new CancelEventHandler(OnFormClosing);
+                _form1.Disposed += _form1_Disposed;
                 _formCount++;
 
                 _form2 = new AboutForm();
@@ -74,8 +75,25 @@ namespace LiveStreamGenie
                 _form2.Show();
             }
 
+            private void _form1_Disposed(object? sender, EventArgs e)
+            {
+                if (
+                    _form1.Bounds != _form1Position)
+                {
+                    _form1Position = _form1.Bounds;
+                }
+
+                if (_form2.Bounds != _form2Position)
+                {
+                    _form2Position = _form2.Bounds;
+                }
+               
+            }
+
             private void OnApplicationExit(object sender, EventArgs e)
             {
+               
+
                 // When the application is exiting, write the application data to the
                 // user file and close it.
                 WriteFormDataToFile();
@@ -92,10 +110,9 @@ namespace LiveStreamGenie
             {
                 // When a form is closing, remember the form position so it
                 // can be saved in the user data file.
-                if (sender is SettingsForm)
-                    _form1Position = ((Form)sender).Bounds;
-                else if (sender is AboutForm)
-                    _form2Position = ((Form)sender).Bounds;
+                // also need to track this if systray Exit choosen so also check in applicaiton.exit
+              
+                // Moved logic to FormDisposed because system tray exit doesn't catch Form Closing
             }
 
             private void OnFormClosed(object sender, EventArgs e)
@@ -200,6 +217,7 @@ namespace LiveStreamGenie
                 notifyIcon = new NotifyIcon();
                 notifyIcon.Icon = new Icon("favicon.ico");
                 notifyIcon.Text = "Genie";
+                
 
                 cms = new ContextMenuStrip();
 
