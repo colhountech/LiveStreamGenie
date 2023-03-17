@@ -6,10 +6,16 @@ namespace LiveStreamGenie
 {
     internal static class Program
     {
-        private static NotifyIcon notifyIcon;
-        private static ContextMenuStrip cms;
-        private static ApplicationContext context;
-        private static System.Timers.Timer timer;
+        private static readonly NotifyIcon notifyIcon = new()
+        {
+            Icon = new Icon("favicon.ico"),
+            Text = "Genie",
+            ContextMenuStrip = new ContextMenuStrip { },
+            Visible = true,
+        };
+
+        private static readonly ApplicationContext context = new MyApplicationContext();
+        private static readonly System.Timers.Timer timer = new(15 * 1000); // 60 seconds
         private static readonly Settings settings = new();
 
 
@@ -22,20 +28,24 @@ namespace LiveStreamGenie
             private Rectangle _form1Position;
             private Rectangle _form2Position;
 
-            private readonly FileStream _userData;
+            private readonly FileStream? _userData;
 
 
-            private MyApplicationContext()
+            public MyApplicationContext()
             {
                 _formCount = 0;
 
                 // Handle the ApplicationExit event to know when the application is exiting.
                 Application.ApplicationExit += OnApplicationExit;
 
+
                 try
                 {
-                    // Create a file that the application will store user specific data in.
-                    _userData = new FileStream(Application.UserAppDataPath + "\\appdata.txt", FileMode.OpenOrCreate);
+                    if (new FileStream(Application.UserAppDataPath + "\\appdata.txt", FileMode.OpenOrCreate) 
+                        is FileStream userData)
+                    {
+                        _userData = userData;
+                    }
                 }
                 catch (IOException e)
                 {
@@ -107,7 +117,7 @@ namespace LiveStreamGenie
                 try
                 {
                     // Ignore any errors that might occur while closing the file handle.
-                    _userData.Close();
+                    _userData?.Close();
                 }
                 catch { }
             }
@@ -149,11 +159,11 @@ namespace LiveStreamGenie
                     try
                     {
                         // Set the write position to the start of the file and write
-                        _userData.Seek(0, SeekOrigin.Begin);
-                        _userData.Write(dataToWrite, 0, dataToWrite.Length);
-                        _userData.Flush();
+                        _userData?.Seek(0, SeekOrigin.Begin);
+                        _userData?.Write(dataToWrite, 0, dataToWrite.Length);
+                        _userData?.Flush();
 
-                        _userData.SetLength(dataToWrite.Length);
+                        _userData?.SetLength(dataToWrite.Length);
                         return true;
                     }
                     catch { }
@@ -168,20 +178,23 @@ namespace LiveStreamGenie
                 UTF8Encoding encoding = new();
                 string data;
 
-                if (_userData.Length != 0)
-                {
-                    byte[] dataToRead = new byte[_userData.Length];
-
+                if (_userData?.Length is long length  && new byte[length] is byte[] dataToRead )
+                { 
                     try
                     {
                         // Set the read position to the start of the file and read.
-                        _userData.Seek(0, SeekOrigin.Begin);
-                        _userData.Read(dataToRead, 0, dataToRead.Length);
+                        _userData?.Seek(0, SeekOrigin.Begin);
+                        _userData?.Read(dataToRead, 0, dataToRead.Length);
                     }
                     catch (IOException e)
                     {
                         // TODO: Log this error
                         string errorInfo = e.ToString();
+
+
+                        MessageBox.Show("An error occurred while attempting to Read Form Data From File." +
+                                   "The error is:" + errorInfo);
+
                         // An error occurred while attempt to read, return false.
                         return false;
                     }
@@ -229,34 +242,16 @@ namespace LiveStreamGenie
 
                 ApplicationConfiguration.Initialize();
 
-                notifyIcon = new NotifyIcon
-                {
-                    Icon = new Icon("favicon.ico"),
-                    Text = "Genie"
-                };
-
-
-                cms = new ContextMenuStrip();
-
-                cms.Items.Add(new ToolStripMenuItem("Reconnect", null, new EventHandler(Reconnect_Click)));
-                cms.Items.Add(new ToolStripSeparator());
-                cms.Items.Add(new ToolStripMenuItem("Quit", null, new EventHandler(Quit_Click), "Quit"));
-
-                notifyIcon.ContextMenuStrip = cms;
-                notifyIcon.Visible = true;
-
+                notifyIcon.ContextMenuStrip.Items.Add(new ToolStripMenuItem("Reconnect", null, new EventHandler(Reconnect_Click)));
+                notifyIcon.ContextMenuStrip.Items.Add(new ToolStripSeparator());
+                notifyIcon.ContextMenuStrip.Items.Add(new ToolStripMenuItem("Quit", null, new EventHandler(Quit_Click), "Quit"));
 
 
                 // Set up the timer
-                timer = new System.Timers.Timer(15 * 1000); // 60 seconds
                 timer.Elapsed += Timer_Elapsed;
                 timer.Start();
 
-
-
-                // Create an ApplicationContext and run a message loop
-                // on the context.
-                context = new MyApplicationContext();
+                // run a message loopon the context.
                 Application.Run(context);
 
                 // Hide notify icon on quit
@@ -264,8 +259,6 @@ namespace LiveStreamGenie
             }
             private static void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
             {
-
-
                 // Show the message
                 notifyIcon.ShowBalloonTip(3000, "Title", "Message", ToolTipIcon.Info);
 
