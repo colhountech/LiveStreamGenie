@@ -10,6 +10,9 @@ namespace LiveStreamGenie
         private static ContextMenuStrip cms;
         private static ApplicationContext context;
         private static System.Timers.Timer timer;
+        private static bool quitOnAllFormsClosed = false;
+        private static bool startMinimized = false;
+
 
         class MyApplicationContext : ApplicationContext
         {
@@ -71,8 +74,11 @@ namespace LiveStreamGenie
                 }
 
                 // Show both forms.
-                _form1.Show();
-                _form2.Show();
+                if (!startMinimized)
+                {
+                    _form1.Show();
+                    _form2.Show();
+                }
             }
 
             private void _form1_Disposed(object? sender, EventArgs e)
@@ -122,7 +128,7 @@ namespace LiveStreamGenie
                 // When the count gets to 0, exit the app by calling
                 // ExitThread().
                 _formCount--;
-                if (_formCount == 0)
+                if (_formCount == 0 && quitOnAllFormsClosed)
                 {
                     ExitThread();
                 }
@@ -231,7 +237,7 @@ namespace LiveStreamGenie
 
 
                 // Set up the timer
-                timer = new System.Timers.Timer(10 * 1000); // 60 seconds
+                timer = new System.Timers.Timer(15 * 1000); // 60 seconds
                 timer.Elapsed += Timer_Elapsed;
                 timer.Start();
 
