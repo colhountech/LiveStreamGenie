@@ -1,4 +1,7 @@
+﻿using Microsoft.Office.Interop.PowerPoint;
 using LiveStreamGenie.Properties;
+using System.Windows.Forms;
+using Application = Microsoft.Office.Interop.PowerPoint.Application;
 
 namespace LiveStreamGenie
 {
@@ -26,6 +29,7 @@ namespace LiveStreamGenie
         // Application Settings
         private static readonly System.Timers.Timer timer = new(60 * 1000); // 600 seconds - 10 Minutes
         private static readonly ApplicationContext context = new MyApplicationContext(notifyIcon);
+        private static string _DefaultScene;
 
         [STAThread]
         static void Main()
@@ -33,14 +37,89 @@ namespace LiveStreamGenie
             ApplicationConfiguration.Initialize();
             InitialiseDemoTimer();
 
-            // run a message loop on the context.
-            Application.Run(context);
 
-                // Wait until Application Quit
+            Application ppt = new Application();
+            ppt.SlideShowNextSlide += App_SlideShowNextSlide;
+            // Occurs immediately before the transition to the next slide.
+            // For the first slide, occurs immediately after the SlideShowBegin event.
+
+
+            // run a message loop on the context.
+            System.Windows.Forms.Application.Run(context);
+
+
+
+            // Wait until Application Quit
 
             // Hide notify icon on quit
             notifyIcon.Visible = false;
         }
+
+        private static void App_SlideShowNextSlide(SlideShowWindow Wn)
+        {
+
+            if (Wn != null)
+            {
+                Console.WriteLine($"Moved to Slide Number {Wn.View.Slide.SlideNumber}");
+                //Text starts at Index 2 ¯\_(ツ)_/¯
+                var note = String.Empty;
+                try { note = Wn.View.Slide.NotesPage.Shapes[2].TextFrame.TextRange.Text; }
+                catch { /*no notes*/ }
+
+                bool sceneHandled = false;
+
+
+                var notereader = new StringReader(note);
+                string line;
+                while ((line = notereader.ReadLine()) != null)
+                {
+                    if (line.StartsWith("OBS:"))
+                    {
+                        line = line.Substring(4).Trim();
+
+                        if (!sceneHandled)
+                        {
+                            Console.WriteLine($"  Switching to OBS Scene named \"{line}\"");
+                            try
+                            {
+                                sceneHandled = ChangeScene(line);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"  ERROR: {ex.Message.ToString()}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"  WARNING: Multiple scene definitions found.  I used the first and have ignored \"{line}\"");
+                        }
+                    }
+
+                    if (line.StartsWith("OBSDEF:"))
+                    {
+                        _DefaultScene = line.Substring(7).Trim();
+                        Console.WriteLine($"  Setting the default OBS Scene to \"{_DefaultScene}\"");
+                    }
+
+                    //if (line.StartsWith("**START"))
+                    //{
+                    //    OBS.StartRecording();
+                    //}
+
+                    //if (line.StartsWith("**STOP"))
+                    //{
+                    //    OBS.StopRecording();
+                    //}
+
+                    if (!sceneHandled)
+                    {
+                        ChangeScene();
+                        Console.WriteLine($"  Switching to OBS Default Scene named \"{_DefaultScene}\"");
+                    }
+                }
+            }
+        }
+            
 
         private static void InitialiseDemoTimer()
         {
@@ -65,12 +144,19 @@ namespace LiveStreamGenie
 
 
         // TODO: Query PPT and look for Scene Name
-        static void Scene_Click(string sceneName)
+        static bool ChangeScene(string sceneName = "")
         {
+            if (sceneName ==  "")
+            {
+                sceneName = _DefaultScene;
+            }
+
             if (context is MyApplicationContext myApplication)
             {
                 myApplication.ChangeScene(sceneName);
+                return true;
             }
+            return false;
         }
 
         static void Quit_Click(object? sender, System.EventArgs e)
