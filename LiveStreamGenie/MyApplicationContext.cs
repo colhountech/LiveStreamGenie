@@ -1,10 +1,13 @@
 ﻿using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Communication;
+using OBSWebsocketDotNet.Types.Events;
+using System.Text;
 
 namespace LiveStreamGenie
 {
     public class MyApplicationContext : ApplicationContext
     {
+        private static StringBuilder activityLog = new();
         // Inverted Dependencies
         private readonly NotifyIcon notifyIcon;
 
@@ -16,7 +19,7 @@ namespace LiveStreamGenie
         private SettingsForm _settingsForm;
         private AboutForm _aboutForm;
 
-        private readonly Settings settings = new();
+        private Settings settings = new();
 
         #endregion
 
@@ -25,8 +28,8 @@ namespace LiveStreamGenie
             this.notifyIcon = notifyIcon;
             Application.ApplicationExit += OnApplicationExit;
 
-            _settingsForm = new SettingsForm();
-            _aboutForm = new AboutForm();
+            InitSettings();
+            InitAbout();
 
             if (!settings.StartMinimized)
             {
@@ -35,35 +38,73 @@ namespace LiveStreamGenie
             }
             InitObs();
         }
+
+        private void InitAbout()
+        {
+            _aboutForm = new AboutForm();
+            _aboutForm.ActivityLog = activityLog.ToString();
+        }
+
+        private void InitSettings()
+        {
+            _settingsForm = new SettingsForm();
+            // Load the settings into the Form
+            _settingsForm.Settings = settings;
+            _settingsForm.FormClosed += _settingsForm_FormClosed;
+        }
+        private void _settingsForm_FormClosed(object? sender, FormClosedEventArgs e)
+        {
+            Reconnect();
+        }
+
+
         private void InitObs()
         {
             /// setup obs
             obs.Connected += onConnect;
             obs.Disconnected += onDisconnect;
             obs.CurrentProgramSceneChanged += onSceneChanged;
-
-            var url = "ws://raptor:4455";
-            var password = "";
-
-            obs.ConnectAsync(url, password);
+            obs.RecordStateChanged += onRecordEvent;
         }
+
+        private void onRecordEvent(object? sender, RecordStateChangedEventArgs e)
+        {
+            var state = e.OutputState;
+            notifyIcon.ShowBalloonTip(30, "OBS Record", $"{state}", ToolTipIcon.Warning);
+        }
+
         public void Reconnect()
         {
-            InitObs();
+            try
+            {
+                var url = $"ws://{settings.ObsServer}:{settings.ObsPort}";
+                var pass = settings.ObsPass ?? string.Empty;
+                obs.ConnectAsync(url, pass);
+            }
+            catch (Exception ex)
+            {
+                LogActivity(ActivityType.ERROR, ex.Message);
+            }
         }
         public void Settings_Click()
         {
-            _settingsForm = new SettingsForm();
+            if (_settingsForm.IsDisposed)
+            {
+                InitSettings();
+            }
             _settingsForm.Show();
         }
 
+      
         public void About_CLick()
         {
-            _aboutForm = new AboutForm();
+            if (_aboutForm.IsDisposed)
+            {
+                InitAbout();
+            }
             _aboutForm.Show();
-
         }
-        internal void ChangeScene(string scene)
+        internal bool ChangeScene(string scene)
         {
             try
             {
@@ -71,8 +112,10 @@ namespace LiveStreamGenie
             }
             catch (Exception ex)
             {
-                notifyIcon.ShowBalloonTip(3000, "OBS Disconnect", ex.Message, ToolTipIcon.Error);
+                notifyIcon.ShowBalloonTip(3000, "OBS Change Scene", ex.Message, ToolTipIcon.Error);
+                return false;
             }
+            return true;
         }
 
         #region Callbacks
@@ -110,6 +153,22 @@ namespace LiveStreamGenie
             // When the application is exiting, write the application data to the
             // user file and close it.
         
+        }
+
+        internal void StopRecording()
+        {
+            obs.StopRecord();
+        }
+
+        internal void StartRecording()
+        {
+            obs.StartRecord();
+        }
+
+        internal void LogActivity(ActivityType severity, string message)
+        {
+            activityLog.AppendLine(message);
+            _aboutForm.ActivityLog = activityLog.ToString();
         }
     }
 }

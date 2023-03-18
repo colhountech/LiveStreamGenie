@@ -9,6 +9,13 @@ namespace LiveStreamGenie
     public class Settings
     {
         public bool QuitOnAllFormsClosed { get; set; }  = false;
-        public bool StartMinimized { get; set;  } = true;
+        public bool StartMinimized { get; set;  } = false;
+
+        public string ObsServer { get; set; } = default!;
+
+        public string ObsPort { get; set; } = default!;
+
+        public string ObsPass {  get; set; } = default!;
+
     }
 }

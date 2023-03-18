@@ -13,10 +13,24 @@ namespace LiveStreamGenie
 {
     public partial class SettingsForm : Form
     {
+        public Settings Settings { get; set; } = new Settings();
         public SettingsForm()
         {
             InitializeComponent();
             Icon = Resources.favicon;
+        }
+
+        private void SettingsForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+
+        }
+
+        private void SettingsForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Settings.ObsServer = txtServer.Text.Trim();
+            Settings.ObsPort = txtPort.Text.Trim();
+            Settings.ObsPass = txtPassword.Text.Trim();
+            Settings.StartMinimized = chkMinimized.Checked;
         }
     }
 }

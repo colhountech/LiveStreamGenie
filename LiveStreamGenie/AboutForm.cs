@@ -8,15 +8,40 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace LiveStreamGenie
 {
     public partial class AboutForm : Form
     {
+        public string ActivityLog
+        {
+            get { return richTextBox1.Text; }
+            set {UpdateRichTextBox(value);}
+        }
+
+        private void UpdateRichTextBox(string text)
+        {
+            if (richTextBox1.InvokeRequired)
+            {
+                richTextBox1.Invoke(new Action<string>(UpdateRichTextBox), text);
+            }
+            else
+            {
+                richTextBox1.Text += text;
+            }
+        }
+
         public AboutForm()
         {
             InitializeComponent();
-            Icon = Resources.favicon;
+
+
+        }
+
+        private void richTextBox1_Click(object sender, EventArgs e)
+        {
+            richTextBox1.ScrollToCaret();
         }
     }
 }
