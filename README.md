@@ -2,6 +2,8 @@
 
 **Live Streaming Genie** links OBS Commands embeded in your PowerPoint Presentation notes to a remote OBS Server.
 
+![Live Streaming Genie Logo](./LiveStreamGenie/Media/Live%20Stream%20Genie.png)
+
 I do a lot of online live web classes and when I am presenting, I used to use a clicker to advanced my powerpoint slides and then use my Elgato StreamDeck to change to the relevant OBS Scenes. This allows me to to switch between full screen Camera, Desktop Display or Green Screen Scenes based on where I am in the presentation.
 
 With **Live Stream Genie**, I can incorporate both functions together and change the OBS Scene for different power points slides.
