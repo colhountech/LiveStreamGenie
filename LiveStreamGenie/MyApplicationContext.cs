@@ -47,6 +47,7 @@ namespace LiveStreamGenie
 
         private void InitSettings()
         {
+            var settingsFile = 
             _settingsForm = new SettingsForm();
             // Load the settings into the Form
             _settingsForm.Settings = settings;
@@ -133,7 +134,7 @@ namespace LiveStreamGenie
 
             if (e?.WebsocketDisconnectionInfo?.Exception?.InnerException?.Message is string message)
             {
-                reason += message;
+                reason += $": {message}";
             }
             notifyIcon.ShowBalloonTip(3000, "OBS Disconnect", reason, ToolTipIcon.Error);
         }

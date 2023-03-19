@@ -17,5 +17,26 @@ namespace LiveStreamGenie
 
         public string ObsPass {  get; set; } = default!;
 
+        #region constants
+        // short names to stops me going crazy
+        static readonly string cwd = Environment.CurrentDirectory;
+        static readonly char _ = Path.AltDirectorySeparatorChar;
+        static readonly string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        static readonly string appName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
+        #endregion
+
+    
+        public static string GetSettingsPath()
+        {
+            string jsonFile = "settings.json";
+            string fullPath = $"{cwd}{_}{jsonFile}"; // Fallback (Debug) Location
+
+            var di = new DirectoryInfo($"{appData}{_}{appName}");
+            if (di.Exists)
+            {
+                fullPath = $"{appData}{_}{appName}{_}{jsonFile}"; // Deploy Location
+            }
+            return fullPath;
+        }
     }
 }
