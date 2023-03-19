@@ -49,9 +49,17 @@ This C# code creates an instance of the ApplicationContext class and starts a me
 
 While this is running, the main Program class is listening out for events from PowerPoint and sending relevant commands to the App Context for processing.
 
-An ApplicationContext is a class that manages the lifetime of a Windows Forms application. It provides a context in which forms can be shown and closed, and allows you to define application-level behavior, such as handling unhandled exceptions and controlling the shutdown of the application.
+# ICO
 
-The Application.Run method starts a message loop that processes messages from the operating system and dispatches them to the appropriate forms and controls in the application. This message loop is responsible for handling user input, redrawing the user interface, and executing timers and other asynchronous operations.
+I created the favicon from here:
 
-Overall, this code is a standard way to start a Windows Forms application and run its message loop, which enables the application to handle user input and interact with the operating system.
+https://www.freeconvert.com/png-to-ico/download
+
+
+
+# AutoStartup
+
+to start Live Stream Genie at Windows Startup, first publish the app to the default publish folder, then run the batch script in the csproj folder and it will add to your windows startup.
+
+If you publish to somewhere other than `bin\Release\net6.0-windows\publish\win-x64` you will have to update the batch script.
 

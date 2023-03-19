@@ -1,6 +1,8 @@
-﻿using OBSWebsocketDotNet;
+﻿using LiveStreamGenie.Properties;
+using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Communication;
 using OBSWebsocketDotNet.Types.Events;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 
@@ -10,6 +12,22 @@ namespace LiveStreamGenie
     {
         private IStartupSettings _startupSettings;
         private Settings _settings;
+        private bool _obsConnected = false;
+        private bool ObsConnected {
+            get
+            {
+                return _obsConnected;
+            }
+            set
+            {
+                _obsConnected = value;
+
+                if (_startupSettings.NotifyIcon is NotifyIcon notifyIcon)
+                {
+                    notifyIcon.Icon = _obsConnected ?  Resources.favicon : Resources.not_connected;
+                }
+            }
+        }
 
         // OBS Settings
         protected static OBSWebsocket obs = new OBSWebsocket();
@@ -130,6 +148,7 @@ namespace LiveStreamGenie
 
         private void onDisconnect(object? sender, ObsDisconnectionInfo e)
         {
+            ObsConnected = false;
 
             string reason =   e.DisconnectReason ?? e.ObsCloseCode.ToString();
 
@@ -144,6 +163,7 @@ namespace LiveStreamGenie
         {
             if (sender is OBSWebsocket ws && ws.IsConnected)
             {
+                ObsConnected = true;
                 _startupSettings.NotifyIcon?.ShowBalloonTip(3000, "OBS Connected", "👍", ToolTipIcon.Info);
             }
         }
