@@ -1,54 +1,82 @@
 ﻿using Microsoft.Office.Interop.PowerPoint;
 using LiveStreamGenie.Properties;
-using System.Windows.Forms;
 using Application = Microsoft.Office.Interop.PowerPoint.Application;
 
 namespace LiveStreamGenie
 {
     public class Program
     {
-        // System Tray Settings
-        private static readonly NotifyIcon notifyIcon = new()
-        {
-            Text = "Live Stream Genie",
-            Icon = Resources.favicon,
-            ContextMenuStrip = new ContextMenuStrip {
-                Items =
-                {
-                    new ToolStripMenuItem("Reconnect", null, new EventHandler(Reconnect_Click)),
-                    new ToolStripMenuItem("Settings", null, new EventHandler(Settings_Click),"Setting"),
-                    new ToolStripSeparator(),
-                    new ToolStripMenuItem("About", null, new EventHandler(About_Click),"About"),
-                    new ToolStripMenuItem("Quit", null, new EventHandler(Quit_Click), "Quit")
-                }
-            },
-            Visible = true,
-        };
 
         // Application Settings
         private static readonly System.Timers.Timer heartbeat = new(60 * 1000); // 600 seconds - 10 Minutes
-        private static readonly MyApplicationContext myApp = new MyApplicationContext(notifyIcon);
-        private static string _DefaultScene = String.Empty;
+        private static string _defaultScene = String.Empty;
+
+        // Setup Dependencies for MyApp
+        private static IStartupSettings StartupSettings = new StartupSettings();
+        private static MyApplicationContext myApp = new MyApplicationContext(StartupSettings);
 
         [STAThread]
         static void Main()
         {
-            ApplicationConfiguration.Initialize();
-            InitialiseHeartbeatTimer();
+            // Call the `SetUnhandledExceptionMode` from Main, because it had to happen before the framework starts running.
+            System.Windows.Forms.Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            System.Windows.Forms.Application.ThreadException += Application_ThreadException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
-            Application ppt = new Application();
-            ppt.SlideShowNextSlide += App_SlideShowNextSlide;
-            // Occurs immediately before the transition to the next slide.
-            // For the first slide, occurs immediately after the SlideShowBegin event.
+            ApplicationConfiguration.Initialize();
+
+            StartupSettings.NotifyIcon = InitNotifyIcon();
+            InitialiseHeartbeatTimer();
+            InitPowerpoint();
 
             // run a message loop on the context.
             System.Windows.Forms.Application.Run(myApp);
 
             // Wait until Application Quit
-
-            // Hide notify icon on quit
-            notifyIcon.Visible = false;
+            ;
         }
+
+        #region Initializers
+
+        private static void InitialiseHeartbeatTimer()
+        {
+            // Set up the heartbeat timer
+            heartbeat.Elapsed += Timer_Elapsed;
+            heartbeat.Start();
+        }
+
+        static NotifyIcon InitNotifyIcon()
+        {
+            var notifyIcon = new NotifyIcon
+            {
+                Text = "Live Stream Genie",
+                Icon = Resources.favicon,
+                ContextMenuStrip = new ContextMenuStrip
+                {
+                    Items =
+                    {
+                        new ToolStripMenuItem("Reconnect", null,  Reconnect_Click, "reconnect"),
+                        new ToolStripMenuItem("Settings", null, Settings_Click, "settings"),
+                        new ToolStripSeparator(),
+                        new ToolStripMenuItem("About", null, About_Click, "about"),
+                        new ToolStripMenuItem("Quit", null, Quit_Click, "quit")
+                    }
+                },
+                Visible = true
+            };
+            return notifyIcon;
+        }
+        private static void InitPowerpoint()
+        {
+            Application ppt = new Application();
+            ppt.SlideShowNextSlide += App_SlideShowNextSlide;
+            // Occurs immediately before the transition to the next slide.
+            // For the first slide, occurs immediately after the SlideShowBegin event.
+        }
+
+        #endregion
+
+        #region PowerPoint Hander - This is where all the Magic Starts
 
         private static void App_SlideShowNextSlide(SlideShowWindow Wn)
         {
@@ -65,59 +93,63 @@ namespace LiveStreamGenie
             {
                 if (Wn != null)
                 {
-                    LogActivity(ActivityType.INFO, $"Moved to Slide Number {Wn.View.Slide.SlideNumber}");
-                    //Text starts at Index 2 ¯\_(ツ)_/¯
-                    var note = String.Empty;
-                    try { note = Wn.View.Slide.NotesPage.Shapes[2].TextFrame.TextRange.Text; }
-                    catch { /*no notes*/ }
-
-                    bool sceneHandled = false;
-
-                    var notereader = new StringReader(note);
-                    while (notereader.ReadLine() is string line)
+                    if (Wn.View.Slide.SlideNumber is int slideNumber)
                     {
-                        if (line.StartsWith("OBS:"))
+                        LogActivity(ActivityType.INFO, $"Moved to Slide Number {Wn.View.Slide.SlideNumber}");
+
+                        //Text starts at Index 2 ¯\_(ツ)_/¯
+                        var note = String.Empty;
+                        try { note = Wn.View.Slide.NotesPage.Shapes[2].TextFrame.TextRange.Text; }
+                        catch { /*no notes*/ }
+
+                        bool sceneHandled = false;
+
+                        var notereader = new StringReader(note);
+                        while (notereader.ReadLine() is string line)
                         {
-                            line = line.Substring(4).Trim();
+                            if (line.StartsWith("OBS:"))
+                            {
+                                line = line.Substring(4).Trim();
+
+                                if (!sceneHandled)
+                                {
+                                    LogActivity(ActivityType.INFO, $"Switching to OBS Scene named \"{line}\"");
+                                    try
+                                    {
+                                        sceneHandled = ChangeScene(line);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogActivity(ActivityType.ERROR, $"{ex.Message}");
+                                    }
+                                }
+                                else
+                                {
+                                    LogActivity(ActivityType.WARNING, $"Multiple scene definitions found.  I used the first and have ignored \"{line}\"");
+                                }
+                            }
+
+                            if (line.StartsWith("OBSDEF:"))
+                            {
+                                _defaultScene = line.Substring(7).Trim();
+                                LogActivity(ActivityType.INFO, $"Setting the default OBS Scene to \"{_defaultScene}\"");
+                            }
+
+                            if (line.StartsWith("**START"))
+                            {
+                                StartRecording();
+                            }
+
+                            if (line.StartsWith("**STOP"))
+                            {
+                                StopRecording();
+                            }
 
                             if (!sceneHandled)
                             {
-                                LogActivity(ActivityType.INFO, $"Switching to OBS Scene named \"{line}\"");
-                                try
-                                {
-                                    sceneHandled = ChangeScene(line);
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogActivity(ActivityType.ERROR, $"{ex.Message}");
-                                }
+                                ChangeScene();
+                                LogActivity(ActivityType.INFO, $"Switching to OBS Default Scene named \"{_defaultScene}\"");
                             }
-                            else
-                            {
-                                LogActivity(ActivityType.WARNING, $"Multiple scene definitions found.  I used the first and have ignored \"{line}\"");
-                            }
-                        }
-
-                        if (line.StartsWith("OBSDEF:"))
-                        {
-                            _DefaultScene = line.Substring(7).Trim();
-                            LogActivity(ActivityType.INFO, $"Setting the default OBS Scene to \"{_DefaultScene}\"");
-                        }
-
-                        if (line.StartsWith("**START"))
-                        {
-                            StartRecording();
-                        }
-
-                        if (line.StartsWith("**STOP"))
-                        {
-                            StopRecording();
-                        }
-
-                        if (!sceneHandled)
-                        {
-                            ChangeScene();
-                            LogActivity(ActivityType.INFO, $"Switching to OBS Default Scene named \"{_DefaultScene}\"");
                         }
                     }
                 }
@@ -125,13 +157,18 @@ namespace LiveStreamGenie
             {
                 LogActivity(ActivityType.ERROR, $"{ex}");
             }
-            
+
         }
+        #endregion 
+
+        #region OBS Commands
+
         static bool ChangeScene(string sceneName = "")
         {
+
             if (sceneName == "")
             {
-                sceneName = _DefaultScene;
+                sceneName = _defaultScene;
             }
 
             myApp.ChangeScene(sceneName);
@@ -146,17 +183,15 @@ namespace LiveStreamGenie
         {
             myApp.StartRecording();
         }
-        private static void InitialiseHeartbeatTimer()
-        {
-            // Set up the timer
-            heartbeat.Elapsed += Timer_Elapsed;
-            heartbeat.Start();
-        }  
+
+        #endregion
+
+        #region Event Handlers
 
         private static void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
             // Tell the User we are still here
-            notifyIcon.ShowBalloonTip(3000, "HeartBeat", "Still Alive", ToolTipIcon.Info);
+            StartupSettings.NotifyIcon?.ShowBalloonTip(3000, "HeartBeat", "Still Alive", ToolTipIcon.Info);
         }
 
         static void Reconnect_Click(object? sender, System.EventArgs e)
@@ -164,13 +199,13 @@ namespace LiveStreamGenie
             myApp.Reconnect();
         }
 
-        private static void LogActivity(ActivityType severity, string message)
-        {
-            myApp.LogActivity(severity, message);
-        }
 
         static void Quit_Click(object? sender, System.EventArgs e)
         {
+            if (StartupSettings.NotifyIcon is NotifyIcon i)
+            {
+                i.Visible = false;
+            }
             // End application though ApplicationContext
             myApp.ExitThread();
         }
@@ -180,7 +215,25 @@ namespace LiveStreamGenie
         }
         static void About_Click(object? sender, EventArgs e)
         {
-            myApp.About_CLick();
+            myApp.About_Click();
         }
+        #endregion
+
+        #region Exception Handling and Logging
+        private static void LogActivity(ActivityType severity, string message)
+        {
+            myApp.LogActivity(severity, message);
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            LogActivity(ActivityType.ERROR, e.ExceptionObject?.ToString() ?? "Current Domain UnhandledException");
+        }
+
+        private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
+        {
+            LogActivity(ActivityType.ERROR, e.Exception.Message);
+        }
+        #endregion
     }
 }

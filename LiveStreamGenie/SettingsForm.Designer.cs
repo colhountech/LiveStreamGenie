@@ -64,7 +64,6 @@
             txtServer.Name = "txtServer";
             txtServer.Size = new Size(200, 39);
             txtServer.TabIndex = 4;
-            txtServer.Text = "raptor";
             // 
             // lblServer
             // 
@@ -144,6 +143,7 @@
             Text = "SettingsForm";
             FormClosing += SettingsForm_FormClosing;
             FormClosed += SettingsForm_FormClosed;
+            Load += SettingsForm_Load;
             grpObs.ResumeLayout(false);
             grpObs.PerformLayout();
             grpSystem.ResumeLayout(false);

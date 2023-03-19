@@ -13,11 +13,14 @@ namespace LiveStreamGenie
 {
     public partial class SettingsForm : Form
     {
-        public Settings Settings { get; set; } = new Settings();
-        public SettingsForm()
+        public Settings Settings { get; set; }
+        public SettingsForm(Settings settings)
         {
             InitializeComponent();
-            Icon = Resources.favicon;
+            Settings = settings;
+
+
+
         }
 
         private void SettingsForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -31,6 +34,15 @@ namespace LiveStreamGenie
             Settings.ObsPort = txtPort.Text.Trim();
             Settings.ObsPass = txtPassword.Text.Trim();
             Settings.StartMinimized = chkMinimized.Checked;
+        }
+
+        private void SettingsForm_Load(object sender, EventArgs e)
+        {
+            txtServer.Text = Settings.ObsServer;
+            txtPort.Text = Settings.ObsPort;
+            txtPassword.Text = Settings.ObsPass;
+            chkMinimized.Checked = Settings.StartMinimized;
+
         }
     }
 }
