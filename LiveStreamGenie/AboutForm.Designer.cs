@@ -37,36 +37,39 @@
             // 
             // pictureBox1
             // 
-            pictureBox1.Dock = DockStyle.Right;
+            pictureBox1.BackColor = Color.White;
+            pictureBox1.Dock = DockStyle.Left;
             pictureBox1.Image = Properties.Resources.Live_Stream_Genie;
-            pictureBox1.Location = new Point(849, 101);
+            pictureBox1.Location = new Point(0, 0);
             pictureBox1.Margin = new Padding(6);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(563, 859);
+            pictureBox1.Size = new Size(563, 960);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
             // 
             // lblAbout
             // 
-            lblAbout.Dock = DockStyle.Top;
-            lblAbout.Location = new Point(0, 0);
+            lblAbout.BackColor = Color.White;
+            lblAbout.Dock = DockStyle.Fill;
+            lblAbout.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            lblAbout.Location = new Point(563, 0);
             lblAbout.Margin = new Padding(6, 0, 6, 0);
             lblAbout.Name = "lblAbout";
-            lblAbout.Size = new Size(1412, 101);
+            lblAbout.Size = new Size(849, 176);
             lblAbout.TabIndex = 1;
-            lblAbout.Text = "Live Streaming Genie (c) Copyright 2023 ColhounTech Limited";
+            lblAbout.Text = "Live Streaming Genie";
             lblAbout.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // richTextBox1
             // 
             richTextBox1.BorderStyle = BorderStyle.None;
-            richTextBox1.Dock = DockStyle.Fill;
-            richTextBox1.Location = new Point(0, 101);
+            richTextBox1.Dock = DockStyle.Bottom;
+            richTextBox1.Location = new Point(563, 176);
             richTextBox1.Name = "richTextBox1";
-            richTextBox1.Size = new Size(849, 859);
+            richTextBox1.Size = new Size(849, 784);
             richTextBox1.TabIndex = 2;
-            richTextBox1.Text = "";
+            richTextBox1.Text = "Activity Logger";
             richTextBox1.Click += richTextBox1_Click;
             // 
             // AboutForm
@@ -74,9 +77,9 @@
             AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1412, 960);
+            Controls.Add(lblAbout);
             Controls.Add(richTextBox1);
             Controls.Add(pictureBox1);
-            Controls.Add(lblAbout);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(6);
             MaximizeBox = false;
@@ -90,7 +93,8 @@
         #endregion
 
         private PictureBox pictureBox1;
-        private Label lblAbout;
+
         private RichTextBox richTextBox1;
+        private Label lblAbout;
     }
 }

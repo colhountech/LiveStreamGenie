@@ -17,7 +17,7 @@ namespace LiveStreamGenie
         public string ActivityLog
         {
             get { return richTextBox1.Text; }
-            set {UpdateRichTextBox(value);}
+            set { UpdateRichTextBox(value); }
         }
 
         private void UpdateRichTextBox(string text)
