@@ -15,6 +15,8 @@ namespace LiveStreamGenie
     {
         public bool StartMinimized { get; set; } = false;
 
+        public bool DisableHeartBeat { get; set;  } = false;
+
         public string ObsServer { get; set; } = default!;
 
         public string ObsPort { get; set; } = default!;

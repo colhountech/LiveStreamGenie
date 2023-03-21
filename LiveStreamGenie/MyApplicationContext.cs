@@ -11,7 +11,8 @@ namespace LiveStreamGenie
     public class MyApplicationContext : ApplicationContext
     {
         private IStartupSettings _startupSettings;
-        private Settings _settings;
+        internal Settings Settings { get; set;  }
+
         private bool _obsConnected = false;
         private bool ObsConnected {
             get
@@ -43,14 +44,14 @@ namespace LiveStreamGenie
         public MyApplicationContext( IStartupSettings startupSettings)
         {
             _startupSettings = startupSettings;
-            _settings = startupSettings.LoadSettingsAsync().GetAwaiter().GetResult();
+            Settings = startupSettings.LoadSettingsAsync().GetAwaiter().GetResult();
             
             Application.ApplicationExit += OnApplicationExit;
 
             InitSettings();
             InitAbout();
 
-            if (!_settings?.StartMinimized ?? true)
+            if (!Settings?.StartMinimized ?? true)
             {
                 _settingsForm?.Show();
                 _aboutForm?.Show();
@@ -67,13 +68,13 @@ namespace LiveStreamGenie
         private void InitSettings()
         {
            
-            _settingsForm = new SettingsForm(_settings);
+            _settingsForm = new SettingsForm(Settings);
             // Load the settings from the Form when settings form is clsoed
             _settingsForm.FormClosed += _settingsForm_FormClosed;
         }
         private async void _settingsForm_FormClosed(object? sender, FormClosedEventArgs e)
         {
-            await _startupSettings.SaveSettingsAsync(_settings);
+            await _startupSettings.SaveSettingsAsync(Settings);
             Reconnect();
         }
 
@@ -97,8 +98,8 @@ namespace LiveStreamGenie
         {
             try
             {
-                var url = $"ws://{_settings.ObsServer}:{_settings.ObsPort}";
-                var pass = _settings.ObsPass ?? string.Empty;
+                var url = $"ws://{Settings.ObsServer}:{Settings.ObsPort}";
+                var pass = Settings.ObsPass ?? string.Empty;
                 obs.ConnectAsync(url, pass);
             }
             catch (Exception ex)

@@ -10,8 +10,6 @@ namespace LiveStreamGenie
 {
     internal class StartupSettings : IStartupSettings
     {
-       
-
         async Task<Settings?> IStartupSettings.LoadSettingsAsync()
         {
             var _path = GetSettingsPath();

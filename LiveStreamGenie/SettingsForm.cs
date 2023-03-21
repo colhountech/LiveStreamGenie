@@ -34,6 +34,7 @@ namespace LiveStreamGenie
             Settings.ObsPort = txtPort.Text.Trim();
             Settings.ObsPass = txtPassword.Text.Trim();
             Settings.StartMinimized = chkMinimized.Checked;
+            Settings.DisableHeartBeat = chkDisableHearbeat.Checked;
         }
 
         private void SettingsForm_Load(object sender, EventArgs e)
@@ -42,7 +43,7 @@ namespace LiveStreamGenie
             txtPort.Text = Settings.ObsPort;
             txtPassword.Text = Settings.ObsPass;
             chkMinimized.Checked = Settings.StartMinimized;
-
+            chkDisableHearbeat.Checked = Settings.DisableHeartBeat;
         }
     }
 }

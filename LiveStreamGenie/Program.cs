@@ -8,7 +8,7 @@ namespace LiveStreamGenie
     {
 
         // Application Settings
-        private static readonly System.Timers.Timer heartbeat = new(60 * 1000); // 600 seconds - 10 Minutes
+        private static readonly System.Timers.Timer heartbeat = new(6 * 1000); // 600 seconds - 10 Minutes
         private static string _defaultScene = String.Empty;
 
         // Setup Dependencies for MyApp
@@ -190,9 +190,14 @@ namespace LiveStreamGenie
 
         private static void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
-            // Tell the User we are still here
-            StartupSettings.NotifyIcon?.ShowBalloonTip(3000, "HeartBeat", "Still Alive", ToolTipIcon.Info);
+            if (myApp.Settings is Settings settings &&  settings.DisableHeartBeat)
+            {
+                return;
+            }
+                // Tell the User we are still here
+                StartupSettings.NotifyIcon?.ShowBalloonTip(3000, "HeartBeat", "Still Alive", ToolTipIcon.Info);
         }
+
 
         static void Reconnect_Click(object? sender, System.EventArgs e)
         {

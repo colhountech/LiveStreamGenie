@@ -38,6 +38,7 @@
             lblPort = new Label();
             grpSystem = new GroupBox();
             chkMinimized = new CheckBox();
+            chkDisableHearbeat = new CheckBox();
             grpObs.SuspendLayout();
             grpSystem.SuspendLayout();
             SuspendLayout();
@@ -110,11 +111,12 @@
             // 
             // grpSystem
             // 
+            grpSystem.Controls.Add(chkDisableHearbeat);
             grpSystem.Controls.Add(chkMinimized);
             grpSystem.Dock = DockStyle.Top;
             grpSystem.Location = new Point(0, 271);
             grpSystem.Name = "grpSystem";
-            grpSystem.Size = new Size(536, 127);
+            grpSystem.Size = new Size(536, 205);
             grpSystem.TabIndex = 5;
             grpSystem.TabStop = false;
             grpSystem.Text = "System Settings";
@@ -129,11 +131,21 @@
             chkMinimized.Text = "Start Minimized";
             chkMinimized.UseVisualStyleBackColor = true;
             // 
+            // chkDisableHearbeat
+            // 
+            chkDisableHearbeat.AutoSize = true;
+            chkDisableHearbeat.Location = new Point(39, 111);
+            chkDisableHearbeat.Name = "chkDisableHearbeat";
+            chkDisableHearbeat.Size = new Size(368, 36);
+            chkDisableHearbeat.TabIndex = 6;
+            chkDisableHearbeat.Text = "Disable HeartBeat Notification";
+            chkDisableHearbeat.UseVisualStyleBackColor = true;
+            // 
             // SettingsForm
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(536, 441);
+            ClientSize = new Size(536, 503);
             Controls.Add(grpSystem);
             Controls.Add(grpObs);
             Icon = (Icon)resources.GetObject("$this.Icon");
@@ -162,5 +174,6 @@
         private Label lblServer;
         private GroupBox grpSystem;
         private CheckBox chkMinimized;
+        private CheckBox chkDisableHearbeat;
     }
 }
