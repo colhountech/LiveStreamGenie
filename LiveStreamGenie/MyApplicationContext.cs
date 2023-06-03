@@ -57,6 +57,7 @@ namespace LiveStreamGenie
                 _aboutForm?.Show();
             }
             InitObs();
+            ReconnectObs();
 
         }
     private void InitAbout()
@@ -75,7 +76,7 @@ namespace LiveStreamGenie
         private async void _settingsForm_FormClosed(object? sender, FormClosedEventArgs e)
         {
             await _startupSettings.SaveSettingsAsync(Settings);
-            Reconnect();
+            ReconnectObs();
         }
 
 
@@ -94,7 +95,7 @@ namespace LiveStreamGenie
             _startupSettings.NotifyIcon?.ShowBalloonTip(30, "OBS Record", $"{state}", ToolTipIcon.Warning);
         }
 
-        public void Reconnect()
+        public void ReconnectObs()
         {
             try
             {
@@ -190,6 +191,8 @@ namespace LiveStreamGenie
 
         internal void LogActivity(ActivityType severity, string message)
         {
+            _startupSettings.NotifyIcon?.ShowBalloonTip(3000, "Activity", message, ToolTipIcon.Info);
+
             // Hack: Make this better
             activityLog.AppendLine(message);
             _aboutForm.ActivityLog = activityLog.ToString();

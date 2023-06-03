@@ -6,9 +6,10 @@ namespace LiveStreamGenie
 {
     public class Program
     {
+        private static Application ppt;
 
         // Application Settings
-        private static readonly System.Timers.Timer heartbeat = new(6 * 1000); // 600 seconds - 10 Minutes
+        private static readonly System.Timers.Timer heartbeat = new(600 * 1000); // 600 seconds - 10 Minutes
         private static string _defaultScene = String.Empty;
 
         // Setup Dependencies for MyApp
@@ -55,7 +56,7 @@ namespace LiveStreamGenie
                 {
                     Items =
                     {
-                        new ToolStripMenuItem("Reconnect", null,  Reconnect_Click, "reconnect"),
+                        new ToolStripMenuItem("Reconnect OBS", null,  ReconnectObs_Click, "reconnect"),
                         new ToolStripMenuItem("Settings", null, Settings_Click, "settings"),
                         new ToolStripSeparator(),
                         new ToolStripMenuItem("About", null, About_Click, "about"),
@@ -68,20 +69,34 @@ namespace LiveStreamGenie
         }
         private static void InitPowerpoint()
         {
-            Application ppt = new Application();
-            ppt.SlideShowNextSlide += App_SlideShowNextSlide;
+            ppt = new Application();
+            ppt.SlideShowNextSlide += Ppt_SlideShowNextSlide;
             // Occurs immediately before the transition to the next slide.
             // For the first slide, occurs immediately after the SlideShowBegin event.
+            ppt.SlideShowBegin += Ppt_SlideShowBegin;
+            ppt.SlideShowEnd += Ppt_SlideShowEnd;
+          
+        }
+
+        private static void Ppt_SlideShowEnd(Presentation Pres)
+        {
+            LogActivity(ActivityType.INFO, $"Slide Show Ends");
+
+        }
+
+        private static void Ppt_SlideShowBegin(SlideShowWindow Wn)
+        {
+            LogActivity(ActivityType.INFO, $"Slide Show Begins");
         }
 
         #endregion
 
         #region PowerPoint Hander - This is where all the Magic Starts
 
-        private static void App_SlideShowNextSlide(SlideShowWindow Wn)
+        private static void Ppt_SlideShowNextSlide(SlideShowWindow Wn)
         {
             /*
-             * System.Runtime.InteropServices.COMException
+             * System.Runtime.InteropServices.COMExceptiona
   HResult=0x80048240
   Message=SlideShowView (unknown member) : Invalid request.  No slide is currently in view.
   Source=<Cannot evaluate the exception source>
@@ -199,9 +214,9 @@ namespace LiveStreamGenie
         }
 
 
-        static void Reconnect_Click(object? sender, System.EventArgs e)
+        static void ReconnectObs_Click(object? sender, System.EventArgs e)
         {
-            myApp.Reconnect();
+            myApp.ReconnectObs();
         }
 
 
