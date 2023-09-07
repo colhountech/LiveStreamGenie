@@ -130,7 +130,10 @@ namespace LiveStreamGenie
         {
             try
             {
-                obs.SetCurrentProgramScene(scene);
+                if (ObsConnected)
+                {
+                    obs.SetCurrentProgramScene(scene);
+                }
             }
             catch (Exception ex)
             {
@@ -181,12 +184,20 @@ namespace LiveStreamGenie
 
         internal void StopRecording()
         {
-            obs.StopRecord();
+            if (ObsConnected)
+            {
+
+                obs.StopRecord();
+            }
         }
 
         internal void StartRecording()
         {
-            obs.StartRecord();
+            if (ObsConnected)
+            {
+
+                obs.StartRecord();
+            }
         }
 
         internal void LogActivity(ActivityType severity, string message)
