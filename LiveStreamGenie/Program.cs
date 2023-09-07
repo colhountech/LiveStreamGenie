@@ -14,7 +14,7 @@ namespace LiveStreamGenie
 
         // Setup Dependencies for MyApp
         private static IStartupSettings StartupSettings = new StartupSettings();
-        private static MyApplicationContext myApp = new MyApplicationContext(StartupSettings);
+        private static OBSContext obsApp = new OBSContext(StartupSettings);
 
         [STAThread]
         static void Main()
@@ -31,7 +31,7 @@ namespace LiveStreamGenie
             InitPowerpoint();
 
             // run a message loop on the context.
-            System.Windows.Forms.Application.Run(myApp);
+            System.Windows.Forms.Application.Run(obsApp);
 
             // Wait until Application Quit
             ;
@@ -186,17 +186,17 @@ namespace LiveStreamGenie
                 sceneName = _defaultScene;
             }
 
-            myApp.ChangeScene(sceneName);
+            obsApp.ChangeScene(sceneName);
             return true; // keep the same workflow as before
 
         }
         private static void StopRecording()
         {
-            myApp.StopRecording();
+            obsApp.StopRecording();
         }
         private static void StartRecording()
         {
-            myApp.StartRecording();
+            obsApp.StartRecording();
         }
 
         #endregion
@@ -205,7 +205,7 @@ namespace LiveStreamGenie
 
         private static void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
-            if (myApp.Settings is Settings settings &&  settings.DisableHeartBeat)
+            if (obsApp.Settings is Settings settings &&  settings.DisableHeartBeat)
             {
                 return;
             }
@@ -216,7 +216,7 @@ namespace LiveStreamGenie
 
         static void ReconnectObs_Click(object? sender, System.EventArgs e)
         {
-            myApp.ReconnectObs();
+            obsApp.ReconnectObs();
         }
 
 
@@ -227,22 +227,22 @@ namespace LiveStreamGenie
                 i.Visible = false;
             }
             // End application though ApplicationContext
-            myApp.ExitThread();
+            obsApp.ExitThread();
         }
         static void Settings_Click(object? sender, EventArgs e)
         {
-            myApp.Settings_Click();
+            obsApp.Settings_Click();
         }
         static void About_Click(object? sender, EventArgs e)
         {
-            myApp.About_Click();
+            obsApp.About_Click();
         }
         #endregion
 
         #region Exception Handling and Logging
         private static void LogActivity(ActivityType severity, string message)
         {
-            myApp.LogActivity(severity, message);
+            obsApp.LogActivity(severity, message);
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

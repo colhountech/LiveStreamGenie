@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace LiveStreamGenie
 {
-    public class MyApplicationContext : ApplicationContext
+    public class OBSContext : ApplicationContext
     {
         private IStartupSettings _startupSettings;
         internal Settings Settings { get; set;  }
@@ -41,7 +41,7 @@ namespace LiveStreamGenie
 
         #endregion
 
-        public MyApplicationContext( IStartupSettings startupSettings)
+        public OBSContext( IStartupSettings startupSettings)
         {
             _startupSettings = startupSettings;
             Settings = startupSettings.LoadSettingsAsync().GetAwaiter().GetResult();
@@ -197,7 +197,6 @@ namespace LiveStreamGenie
             activityLog.AppendLine(message);
             _aboutForm.ActivityLog = activityLog.ToString();
         }
-
       
     }
 }
