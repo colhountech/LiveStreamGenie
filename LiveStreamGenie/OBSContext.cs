@@ -202,8 +202,10 @@ namespace LiveStreamGenie
 
         internal void LogActivity(ActivityType severity, string message)
         {
-            _startupSettings.NotifyIcon?.ShowBalloonTip(3000, "Activity", message, ToolTipIcon.Info);
-
+            if (ObsConnected)
+            {
+                _startupSettings.NotifyIcon?.ShowBalloonTip(750, "Activity", message, ToolTipIcon.Info);
+            }
             // Hack: Make this better
             activityLog.AppendLine(message);
             _aboutForm.ActivityLog = activityLog.ToString();

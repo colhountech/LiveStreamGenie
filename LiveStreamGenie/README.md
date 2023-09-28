@@ -63,3 +63,13 @@ to start Live Stream Genie at Windows Startup, first publish the app to the defa
 
 If you publish to somewhere other than `bin\Release\net6.0-windows\publish\win-x64` you will have to update the batch script.
 
+
+# Outline Design
+
+At Start:
+
+1. Create StartupSetting object
+1. Create OBSContext Object, and pass it the Startup Settings object
+1. Create the Notify Icon - setup it's handlers for the context menu, including Reconnect_Click, Setting_Click, About and Quit
+1. Start the HeartBeat Time
+1. Initialise Power Point Application and set Handlers for Ppt_SlideShowNextSlide, Ppt_SlideShowBegin, Ppt_SlideShowEnd
