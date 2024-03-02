@@ -29,7 +29,8 @@ jobs:
         
     # Install Microsoft Office (modify the version as needed)
     - name: Install Microsoft Office
-      run: choco install microsoft-365-business-desktop --version=16.0.14527.20234 -y
+      run: choco install office365business -y 
+      # choco install microsoft-365-business-desktop --version=16.0.14527.20234 -y
         
     # Install the .NET Core workload
     - name: Install .NET Core
