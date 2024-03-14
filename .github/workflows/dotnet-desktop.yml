@@ -54,7 +54,7 @@ jobs:
 
     # Publish the application
     - name: Publish the application
-      run: dotnet publish -c Release -o ./publish
+      run: msbuild LiveStreamGenie.sln /t:Publish /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=Properties\PublishProfiles\FolderProfile.pubxml
 
     # Create a release artifact
     - name: Create release artifact
